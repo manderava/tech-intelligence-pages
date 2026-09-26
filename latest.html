@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>最新周报 · 2026-W39</title>
+<meta name="description" content="最新后端技术周报 2026-W39">
+<style>:root{color-scheme:light;--ink:#172033;--muted:#64748b;--line:#dbe3ec;--paper:#fff;--soft:#f3f6fa;--accent:#155eef;--risk:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--soft);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{max-width:1040px;margin:auto}header{padding:2rem 1.25rem 1rem}nav a{margin-right:1rem}main{background:var(--paper);padding:2rem clamp(1.1rem,4vw,3.2rem);box-shadow:0 1px 8px #1d293914}
+h1{font-size:2rem;line-height:1.25}h2{margin-top:2.2rem;border-bottom:1px solid var(--line);padding-bottom:.35rem}h3{margin-top:1.5rem}
+a{color:var(--accent)}blockquote{margin:1rem 0;padding:.55rem 1rem;border-left:4px solid var(--accent);background:#eff4ff;color:#344054}
+code{background:#eef2f6;padding:.12rem .32rem;border-radius:.25rem}pre{overflow:auto;padding:1rem;background:#111827;color:#e5e7eb;border-radius:.4rem}pre code{background:none;padding:0}
+table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--line);padding:.5rem .7rem;text-align:left}th{background:#f8fafc}
+.eyebrow,.meta{color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem}.card{border:1px solid var(--line);border-radius:.55rem;padding:1rem}
+.history{columns:2;column-width:240px}.warning{border-left:4px solid var(--risk);padding-left:1rem}footer{padding:1.25rem;color:var(--muted);font-size:.9rem}
+@media(max-width:640px){main{padding:1.2rem}.history{columns:1}}</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Tech Intelligence · Thin HTML Entry</div>
+<nav><a href="index.html">总入口</a><a href="latest.html">最新周报</a><a href="../radar/current.yaml">技术雷达</a></nav>
+</header>
+<main><p class="meta">最近执行：<a href="reports/2026-W39.html">2026-W39</a> · 源文件：<code>reports/2026/2026-W39.md</code></p><h1>后端技术周报 · 2026-W39</h1>
+<blockquote>周期：2026-09-21 至 2026-09-27（Asia/Shanghai）<br><br>生成日期：2026-09-26<br><br>执行模式：已有初始化报告的续跑；未自动提交</blockquote>
+<h2>Executive View</h2>
+<h3>本周 TOP 3</h3>
+<ol>
+<li><strong>JDK 27 已 GA，但它是六个月节奏的非 LTS 版本。</strong></li>
+</ol>
+<p>   【事实】[A] Oracle 于 2026-09-15 发布 JDK 27（build <code>27+35</code>）。发行说明包含 JEP 527 的 TLS 1.3 后量子混合密钥交换；<code>javax.net.ssl</code> 应用默认受益。同时，Linux 上危险的 <code>VFORK</code> 进程启动机制已移除，第三方 JCE provider 若不支持 <code>Generic</code> key，TLS 1.3 握手可能失败。</p>
+<p>   【分析】这不是要求生产基线立即离开 JDK 25 LTS，而是一个明确的兼容性验证窗口：TLS provider、启动参数、时区数据（2026b）和构建插件应进入实验矩阵。</p>
+<p>   【建议】保持生产基线不变，在隔离 CI 上新增 JDK 27 构建与关键 TLS 集成测试；只有依赖矩阵和回滚路径清楚后才讨论采用。</p>
+<ol>
+<li><strong>Spring 把组合补丁列车压缩到同一天，补丁运营节奏发生变化。</strong></li>
+</ol>
+<p>   【事实】[A] Spring 于 2026-09-21 宣布：整个 Spring portfolio 的常规补丁改为第三个周一后的周四统一发布；2026-09 仅发 milestone，新的常规补丁节奏从 2026-10-22 开始。官方同时说明其单月曾需发布 91 个 advisory，并升级了安全公告站点的检索方式。</p>
+<p>   【分析】依赖升级不再适合按单个项目零散处理。统一窗口会减少版本组合漂移，但也可能把多个组件的变更集中到一次验证中。</p>
+<p>   【建议】把 Spring BOM、Boot、Security、Cloud 与 Data 的补丁验证合并为月度“Patch Thursday”演练，并在发布后一到两个工作日完成 SBOM、回归和回滚检查。</p>
+<ol>
+<li><strong>本地 coding-agent 的隔离与可观测性开始进入产品级管理面。</strong></li>
+</ol>
+<p>   【事实】[A] GitHub 在 2026-09-22/23 为 Copilot app 发布企业管理的 OpenTelemetry 导出与本地 sandbox 公测：可按项目限制文件、网络和凭据；操作系统无法执行策略时，shell 会失败而不是无隔离降级。OTel 可记录模型请求和工具调用轨迹，prompt/response 内容默认不导出。</p>
+<p>   【分析】这同时覆盖了 Agent Harness 的 permission boundary 与 observability 两层，比“模型更强”更直接影响企业采用。限制是两项能力仍有作用域差异：本地 sandbox 不覆盖 cloud/remote host，Copilot CLI 也单独配置。</p>
+<p>   【建议】选一个非敏感 Java 仓库做受控试验，验收策略拒绝、凭据隔离、OTel 字段脱敏和故障追踪；公测阶段不作为唯一强制控制。</p>
+<h3>风险预警</h3>
+<ul>
+<li>JDK 27 的 TLS 默认行为与已移除启动选项可能影响自定义 provider 或遗留启动脚本；应在升级前主动发现，而不是等生产握手失败。</li>
+<li>Spring 统一补丁日会放大一次性回归范围；若团队仍按单组件升级，可能在组合版本上形成短期漂移。</li>
+<li>GitHub Copilot 本地 sandbox 默认关闭且不覆盖云端或远程主机；仅开启 UI 开关不能替代仓库级凭据、网络与审批策略。</li>
+<li>GitHub Actions 已移除 Node 20 runtime 与临时 opt-out；仍绑定旧 runtime 的 JavaScript action 会直接形成流水线中断风险。</li>
+</ul>
+<h3>建议动作</h3>
+<ul>
+<li>☐ P1｜Java 平台负责人｜2026-10-09 前｜建立 JDK 27 兼容性流水线；验收：核心服务编译、测试、TLS provider 与启动参数扫描均有结果和回滚说明。</li>
+<li>☐ P1｜平台工程负责人｜2026-10-02 前｜扫描所有 GitHub Actions 的 JavaScript action 版本；验收：无 <code>node20</code> 自维护 action，第三方 action 均升级到支持 Node 24 的版本。</li>
+<li>☐ P1｜Spring 平台负责人｜2026-10-22 前｜建立统一补丁日 runbook；验收：BOM 组合、SBOM、冒烟、回滚和 advisory 核对步骤可重复执行。</li>
+<li>☐ P2｜工程效率负责人｜2026-10-09 前｜完成 Copilot sandbox + OTel 试验；验收：至少验证一条拒绝路径、一条凭据隔离路径和一条脱敏 trace。</li>
+<li>☐ P2｜数据库负责人｜PostgreSQL 19 RC 发布后一周内｜用实际 schema 回放 Beta 4/RC；验收：被撤回特性无依赖，逻辑复制与升级路径结果可追溯。</li>
+</ul>
+<h3>技术雷达摘要</h3>
+<ul>
+<li><code>supported-jdk-baseline</code>：保持 <strong>assess</strong>，以 JDK 25 LTS 为生产基线、JDK 27 为兼容性探针。</li>
+<li><code>spring-upgrade-readiness</code>：保持 <strong>assess</strong>，从初始化描述改为统一补丁列车验证。</li>
+<li><code>production-ai-evaluation</code>：保持 <strong>trial</strong>，Spring AI TypeSafe 仅作为窄域 judge/gate 候选，厂商 benchmark 不作为采购依据。</li>
+<li><code>java-coding-agent-trial</code>：保持 <strong>assess</strong>，把 sandbox、权限失败和 OTel 纳入试验验收。</li>
+<li>新增 <code>agent-harness-governance</code>：进入 <strong>trial</strong>，验证本地隔离与 trace 治理组合。</li>
+</ul>
+<h2>Java / Spring</h2>
+<h3>JDK 27 GA：用作前瞻兼容性探针</h3>
+<p>【事实】[A] JDK 27 的发行日期为 2026-09-15，完整版本为 <code>27+35</code>，含 IANA 时区数据 2026b。JEP 527 默认启用 <code>X25519MLKEM768</code> 等 TLS 1.3 混合密钥交换；发行说明还列出 <code>VFORK</code> 启动机制移除及第三方 JCE provider 的潜在 TLS 兼容问题。</p>
+<p>【分析】对后端团队，价值不在追逐非 LTS，而在提前暴露库、插件、TLS 和进程管理器对新 JDK 的假设。JDK 25 LTS 仍应是默认生产比较基线。</p>
+<p>【建议】在 CI matrix 中加入 JDK 27，但不替换生产 toolchain；单独记录 preview/incubator 功能，禁止无 <code>--enable-preview</code> 治理的生产依赖。</p>
+<h3>Spring “Patch Thursday”：调整依赖治理日历</h3>
+<p>【事实】[A] Spring portfolio 将常规补丁集中到第三个周一后的周四；首次新节奏常规补丁日为 2026-10-22。2026-09 的列车只包含 milestone。</p>
+<p>【分析】团队可以用一个固定窗口同步 BOM、组件和 advisory，但必须预留更宽的组合回归能力。milestone 不应混入生产升级建议。</p>
+<p>【建议】将 2026-10-22 设为演练点，自动生成前后 dependency tree、SBOM 与受影响 advisory 清单。</p>
+<h2>Data Platform</h2>
+<h3>PostgreSQL 19 Beta 4：多个计划特性被撤回</h3>
+<p>【事实】[A] PostgreSQL 19 Beta 4 于 2026-09-24 发布。项目撤回 SQL/PGQ、在线启停 data checksum、<code>FOR PORTION OF</code> temporal update/delete、分区 merge/split 等特性，并修复逻辑复制、autovacuum scoring、<code>COPY FROM</code> SIMD 与并发 detach partition crash；从早期 beta 升级仍需按 major upgrade 路径处理。</p>
+<p>【分析】“被 beta 文档提及”不能当成 GA 合同。若 PoC 已使用被撤回语法，应该立刻从路线图移除；逻辑复制用户则值得在 RC 前做针对性回放。</p>
+<p>【建议】只在隔离环境测试 Beta 4；把 schema/SQL 静态扫描和 logical replication replay 结果带到 RC 评审，不建立生产依赖。</p>
+<p>其余 Kafka、Flink、Redis 与 MySQL 候选在本轮窗口内未发现同时满足新颖性、行动性和证据门槛的更新；不为凑数扩写。</p>
+<h2>AI Engineering</h2>
+<h3>Spring AI TypeSafe 0.1.0：窄域结构化判断候选</h3>
+<p>【事实】[A] Spring 官方博客在 2026-09-21 发布 Spring AI Community 的 TypeSafe 集成 <code>0.1.0</code>，提供 Noul、Choice、Score 三类结构化判断，并实现 Spring AI 的 <code>CallAdvisor</code>、<code>DocumentPostProcessor</code>、<code>ToolIndex</code> 与 <code>Evaluator</code> SPI。该服务需要独立 API key，且不生成文本。</p>
+<p>【分析】文章给出的延迟与成本数字来自供应商自测，缺少独立复现，不能直接用于容量或采购结论。它更适合做路由、阈值 gate 和 inconclusive 分支实验，而不是替代开放式 reasoning。</p>
+<p>【建议】仅用自有标注集做小规模 A/B：同时记录误拒、误放、inconclusive 比例、P95 延迟和单次成本；未达到稳定性门槛前不接入关键决策链。</p>
+<h3>Agent Harness 交叉影响</h3>
+<p>【事实】[A] GitHub Copilot app 的 OTel 配置由企业 managed settings 统一下发，可观察模型请求与工具调用；内容采集默认关闭，需要显式审查后才启用。</p>
+<p>【分析】对评测平台，trace 是重放、失败分类和成本归因的前提；但遥测本身不会自动形成质量评价，也不证明 agent 行为正确。</p>
+<p>【建议】将 trace schema 与现有 OpenTelemetry collector 对齐，先验证字段最小化与 retention，再设计 eval 关联键。</p>
+<h2>Agent Harness / Runtime / Orchestration</h2>
+<h3>Copilot 本地 sandbox + OpenTelemetry</h3>
+<p>【事实】[A] 本地 sandbox 可分别配置额外读写、只读、拒绝目录、外网/本地网络和 Git/GitHub CLI 凭据；策略无法由操作系统执行时会 fail closed。该能力默认关闭、处于 public preview，且不覆盖 cloud sandbox、remote host 或 Copilot CLI 的独立设置。</p>
+<p>【分析】这是完整 Harness 的两个必要层，而非完整治理方案：仍缺少对跨产品策略一致性、审批、持久状态、重试/幂等与 trace 保留策略的统一证明。</p>
+<p>【建议】雷达进入 trial，不进入 adopt。测试必须包括 deny-path、重启后的设置生效范围、CLI/app 配置差异和日志脱敏。</p>
+<h3>Copilot runtime 的 Rust 迁移：有价值的厂商工程案例</h3>
+<p>【事实】[C] GitHub 工程文章称其 Copilot agent runtime 已从 TypeScript/Node 迁移为约 83.2 万行生产 Rust，并通过 135 次渐进发布完成；文章同时披露数十个已知迁移回归，并说明 in-process 入口仍为 opt-in。这是供应商自述的单一生产案例。</p>
+<p>【分析】可借鉴的是“保持行为、增量切片、双 transport、预发布观察”的迁移方法，而不是“Agent 可以无监督重写大型系统”的泛化结论。文章没有提供可独立审计的完整代码与原始 benchmark 数据。</p>
+<p>【建议】仅将其作为 Harness 边界和迁移策略参考；任何本地重写提案仍需自己的成本、故障隔离和回滚证据。</p>
+<h2>Java AI Coding</h2>
+<p>【事实】[A] Copilot sandbox 与 OTel 直接作用于 coding-agent 的文件、网络、凭据和工具 trace；Maven 4.0.0-rc-7 同周发布，要求 Java 17，仍不是 GA。</p>
+<p>【分析】Java 仓库的 agent 试验应同时覆盖 build-tool preview 与运行时权限，不应只用“是否生成可编译代码”作为成功标准。</p>
+<p>【建议】用一个多模块 Maven 仓库设计三组任务：只读诊断、受限修改、依赖升级；分别验证权限拒绝、测试结果、变更审查和恢复路径。</p>
+<h2>开发工具</h2>
+<h3>GitHub Actions：Node 20 runtime 已移除</h3>
+<p>【事实】[A] GitHub 于 2026-09-23 宣布 Actions runner 不再提供 Node 20，JavaScript actions 改用 Node 24，临时 <code>ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION</code> opt-out 已移除；Node 24 不兼容 macOS 13.4 及更早版本，也不正式支持 ARM32。</p>
+<p>【分析】即使主项目是 Java，流水线仍可能依赖 JavaScript action。自托管 runner 的 OS/架构与内部 action 的 <code>runs.using</code> 都是升级阻断点。</p>
+<p>【建议】立刻扫描 <code>.github/actions/**/action.yml</code> 与外部 action pin；先修 runner 与 action 版本，再处理非关键工作流优化。</p>
+<h3>Maven 4.0.0-rc-7：继续评估，不切生产默认</h3>
+<p>【事实】[A] Apache Maven 的发布历史记录显示 <code>4.0.0-rc-7</code> 于 2026-09-24 发布，要求 Java 17；页面仍将 Maven 4 标注为“not yet GA”，当前 GA 维护线仍是 Maven 3.x。</p>
+<p>【分析】RC 适合验证 consumer POM、插件兼容和 CI cache，不适合在缺少回滚与插件矩阵时直接替换组织默认 wrapper。</p>
+<p>【建议】以 Maven Wrapper 固定 RC，只在试验分支运行，并保留 3.9.x 对照。</p>
+<h2>GitHub / 权威博客</h2>
+<p>【事实】[C] GitHub 的 Copilot runtime 迁移复盘公开了增量发布数量、代码规模、回归类型与 transport 设计，但其量化结论由同一供应商采集和解释。</p>
+<p>【分析】该材料适合形成迁移 checklist，不足以证明相同方法适用于业务后端、不同语言或不同审计环境。</p>
+<p>【建议】复用其“行为不变优先、切片发布、保留 out-of-process 隔离、公开回归”原则，不复用其规模或速度预期。</p>
+<h2>技术雷达变化</h2>
+<p>【事实】[A] 本轮在修改 <code>radar/current.yaml</code> 前保存了 <code>radar/history/2026-W39.yaml</code>。四个初始化条目的 ring 均未改变，但证据等级、理由和复查条件已换成可追溯事实；新增 <code>agent-harness-governance</code> 为 trial。</p>
+<p>【分析】没有足够证据将 JDK 27、Maven 4 RC 或公测期 sandbox 直接提升到 adopt。新增 trial 的目的，是把权限与 trace 变成可验收的工程实验。</p>
+<p>【建议】下一期只根据试验结果和正式 GA/稳定性证据移动 ring，避免把“本周发布”误当成“适合生产”。</p>
+<h2>架构行动项</h2>
+<table><thead><tr><th>ID</th><th>优先级</th><th>行动</th><th>负责人角色</th><th>时间窗</th><th>验收条件</th><th>状态</th></tr></thead><tbody>
+<tr><td>ARCH-2026-W39-01</td><td>P1</td><td>建立 JDK 27 兼容性 CI matrix</td><td>Java 平台负责人</td><td>2026-10-09</td><td>核心服务编译、测试、TLS provider 和启动参数结果可追溯，含回滚说明</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-02</td><td>P1</td><td>清理 GitHub Actions Node 20 依赖</td><td>DevOps 负责人</td><td>2026-10-02</td><td>自维护 action 使用 node24，第三方 action 与 runner 平台均通过验证</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-03</td><td>P1</td><td>建立 Spring Patch Thursday runbook</td><td>Spring 平台负责人</td><td>2026-10-22</td><td>BOM、SBOM、advisory、回归、回滚步骤完成一次演练</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-04</td><td>P2</td><td>试验 Copilot sandbox 与 OTel</td><td>工程效率负责人</td><td>2026-10-09</td><td>deny-path、凭据隔离、脱敏 trace 和配置作用域均有证据</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-05</td><td>P2</td><td>回放 PostgreSQL 19 RC</td><td>数据库负责人</td><td>RC 发布后一周内</td><td>被撤回特性无依赖，复制与升级回放有可复现记录</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-06</td><td>P2</td><td>评估 Maven 4 RC 插件矩阵</td><td>构建平台负责人</td><td>2026-10-16</td><td>多模块样本在 3.9.x 与 4.0.0-rc-7 的差异清单完整</td><td>open</td></tr>
+</tbody></table>
+<h2>观察池与拒绝项</h2>
+<ul>
+<li>观察：Spring Cloud <code>2026.0.0-M1</code> 基于 Spring Boot <code>4.2.0-M2</code>，仅保留为 2026 feature train 预研信号，不用于生产建议。</li>
+<li>观察：Elasticsearch <code>9.5.4</code> 与 Docker Desktop <code>4.92.0</code> 在窗口内有发布，但本轮未发现足以改变现有架构动作的材料。</li>
+<li>拒绝：OpenAI Agents API（2026-09-10）与 Google ADK for Kotlin 1.0（2026-09-09）超出默认 14 天发现窗口；保留到后续专题，不在本周正文展开。</li>
+<li>拒绝：Copilot Memory / agentic autofix 仍处 public preview，缺少可审计的 memory 生命周期、删除与跨功能传播证据，不进入雷达。</li>
+<li>冲突检查：未发现上述官方来源对发布日期、版本或作用域的相互矛盾说明；供应商自测数字均未升级为确定性结论。</li>
+</ul>
+<h2>来源索引</h2>
+<ul>
+<li><a href="https://www.oracle.com/java/technologies/javase/27-relnote-issues.html">JDK 27 Release Notes</a> — 发布者：Oracle；访问日期：2026-09-26；事件日期：2026-09-15；适用版本：JDK 27 build 27+35；[A]</li>
+<li><a href="https://www.oracle.com/news/announcement/oracle-releases-java-27-and-strengthens-post-quantum-cryptography-support-2026-09-15/">Oracle Releases Java 27</a> — 发布者：Oracle；访问日期：2026-09-26；事件日期：2026-09-15；适用版本：Oracle JDK 27；[A]</li>
+<li><a href="https://spring.io/blog/2026/09/21/releasing-spring-for-modern-challenges/">Releasing Spring for Modern Challenges</a> — 发布者：Spring；访问日期：2026-09-26；事件日期：2026-09-21；适用版本：Spring portfolio release process from 2026-10-22；[A]</li>
+<li><a href="https://www.postgresql.org/about/news/postgresql-19-beta-4-released-3386/">PostgreSQL 19 Beta 4 Released</a> — 发布者：PostgreSQL Global Development Group；访问日期：2026-09-26；事件日期：2026-09-24；适用版本：PostgreSQL 19 Beta 4；[A]</li>
+<li><a href="https://github.blog/changelog/2026-09-23-local-sandboxing-in-the-github-copilot-app/">Local sandboxing in the GitHub Copilot app</a> — 发布者：GitHub；访问日期：2026-09-26；事件日期：2026-09-23；适用版本：GitHub Copilot app public preview；[A]</li>
+<li><a href="https://github.blog/changelog/2026-09-22-opentelemetry-in-the-github-copilot-app/">OpenTelemetry in the GitHub Copilot app</a> — 发布者：GitHub；访问日期：2026-09-26；事件日期：2026-09-22；适用版本：GitHub Copilot app enterprise managed settings；[A]</li>
+<li><a href="https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/">Node 20 is no longer available in GitHub Actions</a> — 发布者：GitHub；访问日期：2026-09-26；事件日期：2026-09-23；适用版本：GitHub Actions hosted and self-hosted runner guidance；[A]</li>
+<li><a href="https://maven.apache.org/docs/history.html">Maven Releases History</a> — 发布者：Apache Maven Project；访问日期：2026-09-26；事件日期：2026-09-24；适用版本：Maven 4.0.0-rc-7；[A]</li>
+<li><a href="https://spring.io/blog/2026/09/21/spring-ai-typesafe-structured-judgment/">Spring AI and TypeSafe Jev</a> — 发布者：Spring；访问日期：2026-09-26；事件日期：2026-09-21；适用版本：spring-ai-typesafe 0.1.0；[A]</li>
+<li><a href="https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/">Migrating the GitHub Copilot runtime to Rust</a> — 发布者：GitHub Engineering；访问日期：2026-09-26；事件日期：2026-09-16；适用版本：Copilot agent runtime migration completed 2026-08；[C]</li>
+<li><a href="https://www.elastic.co/docs/release-notes/elasticsearch">Elasticsearch release notes</a> — 发布者：Elastic；访问日期：2026-09-26；事件日期：2026-09-15；适用版本：Elasticsearch 9.5.4；[A]</li>
+<li><a href="https://docs.docker.com/desktop/release-notes/">Docker Desktop release notes</a> — 发布者：Docker；访问日期：2026-09-26；事件日期：2026-09-21；适用版本：Docker Desktop 4.92.0；[A]</li>
+</ul>
+<blockquote>预算使用：发现 42 条（来自官方 release/changelog 索引），筛选 18 条，深读 10 条，正文采用 8 个主题；估算有效输入约 38k tokens、报告输出约 6.7k tokens；未触发 120k 软上限，未执行降级策略。</blockquote></main>
+<footer>此页面由 Markdown 自动生成；内容与证据的 Source of Truth 位于 Git 仓库。</footer>
+</body>
+</html>
