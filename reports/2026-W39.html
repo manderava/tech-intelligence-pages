@@ -22,7 +22,7 @@ table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin
 <nav><a href="../index.html">总入口</a><a href="../latest.html">最新周报</a><a href="../../radar/current.yaml">技术雷达</a></nav>
 </header>
 <main><p class="meta">源文件：<code>reports/2026/2026-W39.md</code> · HTML 为可重建阅读层</p><h1>后端技术周报 · 2026-W39</h1>
-<blockquote>周期：2026-09-21 至 2026-09-27（Asia/Shanghai）<br><br>生成日期：2026-09-26<br><br>执行模式：<code>overwrite</code>（existing artifacts overwritten by policy）；未自动提交</blockquote>
+<blockquote>周期：2026-09-21 至 2026-09-27（Asia/Shanghai）<br><br>生成日期：2026-09-27<br><br>执行模式：<code>overwrite</code>（existing artifacts overwritten by policy）；未自动提交</blockquote>
 <h2>Executive View</h2>
 <h3>本周 TOP 3</h3>
 <ol>
@@ -38,17 +38,19 @@ table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin
 <p>   【分析】依赖升级不再适合按单个项目零散处理。统一窗口会减少版本组合漂移，但也可能把多个组件的变更集中到一次验证中。</p>
 <p>   【建议】把 Spring BOM、Boot、Security、Cloud 与 Data 的补丁验证合并为月度“Patch Thursday”演练，并在发布后一到两个工作日完成 SBOM、回归和回滚检查。</p>
 <ol>
-<li><strong>本地 coding-agent 的隔离与可观测性开始进入产品级管理面。</strong></li>
+<li><strong>PgBouncer 1.26.0 修复三项 DoS 漏洞，需核对连接池暴露面。</strong></li>
 </ol>
-<p>   【事实】[A] GitHub 在 2026-09-22/23 为 Copilot app 发布企业管理的 OpenTelemetry 导出与本地 sandbox 公测：可按项目限制文件、网络和凭据；操作系统无法执行策略时，shell 会失败而不是无隔离降级。OTel 可记录模型请求和工具调用轨迹，prompt/response 内容默认不导出。</p>
-<p>   【分析】这同时覆盖了 Agent Harness 的 permission boundary 与 observability 两层，比“模型更强”更直接影响企业采用。限制是两项能力仍有作用域差异：本地 sandbox 不覆盖 cloud/remote host，Copilot CLI 也单独配置。</p>
-<p>   【建议】选一个非敏感 Java 仓库做受控试验，验收策略拒绝、凭据隔离、OTel 字段脱敏和故障追踪；公测阶段不作为唯一强制控制。</p>
+<p>   【事实】[A] PgBouncer 项目于 2026-09-23 发布 1.26.0，修复 <code>CVE-2026-19888</code>、<code>CVE-2026-6668</code> 和 <code>CVE-2026-6669</code>。前两项可由未认证客户端触发崩溃或无限循环；第三项涉及恶意 PostgreSQL 服务端发送无界 SCRAM 迭代次数。</p>
+<p>   【分析】是否需要紧急升级取决于实际部署版本、网络可达性、认证方式与服务端信任边界；不能据公告推断本组织已受影响。升级还涉及默认追踪 <code>search_path</code> 与 <code>default_transaction_read_only</code> 以及移除 <code>-R</code>，需一起回归。</p>
+<p>   【建议】先盘点 PgBouncer 实例、版本与入口暴露面；受影响实例以 1.26.0 为目标制定变更，验证连接、会话参数与回滚。</p>
 <h3>风险预警</h3>
 <ul>
 <li>JDK 27 的 TLS 默认行为与已移除启动选项可能影响自定义 provider 或遗留启动脚本；应在升级前主动发现，而不是等生产握手失败。</li>
 <li>Spring 统一补丁日会放大一次性回归范围；若团队仍按单组件升级，可能在组合版本上形成短期漂移。</li>
 <li>GitHub Copilot 本地 sandbox 默认关闭且不覆盖云端或远程主机；仅开启 UI 开关不能替代仓库级凭据、网络与审批策略。</li>
 <li>GitHub Actions 已移除 Node 20 runtime 与临时 opt-out；仍绑定旧 runtime 的 JavaScript action 会直接形成流水线中断风险。</li>
+<li>PgBouncer 1.26.0 修复的前两项 DoS 可由未认证客户端触发；尚未确认本组织部署版本与可达性，需优先盘点。</li>
+<li>Spring AI 2.1.0-M1 的 message parts 目前仅由新 Responses 模型原生使用，持久化 ChatMemory 尚不保留这些 parts；不能把 milestone 的跨轮 reasoning 保持能力当作生产保证。</li>
 </ul>
 <h3>建议动作</h3>
 <ul>
@@ -56,7 +58,7 @@ table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin
 <li>☐ P1｜平台工程负责人｜2026-10-02 前｜扫描所有 GitHub Actions 的 JavaScript action 版本；验收：无 <code>node20</code> 自维护 action，第三方 action 均升级到支持 Node 24 的版本。</li>
 <li>☐ P1｜Spring 平台负责人｜2026-10-22 前｜建立统一补丁日 runbook；验收：BOM 组合、SBOM、冒烟、回滚和 advisory 核对步骤可重复执行。</li>
 <li>☐ P2｜工程效率负责人｜2026-10-09 前｜完成 Copilot sandbox + OTel 试验；验收：至少验证一条拒绝路径、一条凭据隔离路径和一条脱敏 trace。</li>
-<li>☐ P2｜数据库负责人｜PostgreSQL 19 RC 发布后一周内｜用实际 schema 回放 Beta 4/RC；验收：被撤回特性无依赖，逻辑复制与升级路径结果可追溯。</li>
+<li>☐ P1｜数据库平台负责人｜2026-09-30 前｜盘点 PgBouncer 版本、认证和网络暴露面；验收：受影响实例的 1.26.0 升级计划、回归与回滚均有记录。</li>
 </ul>
 <h3>技术雷达摘要</h3>
 <ul>
@@ -76,25 +78,36 @@ table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin
 <p>【分析】团队可以用一个固定窗口同步 BOM、组件和 advisory，但必须预留更宽的组合回归能力。milestone 不应混入生产升级建议。</p>
 <p>【建议】将 2026-10-22 设为演练点，自动生成前后 dependency tree、SBOM 与受影响 advisory 清单。</p>
 <h2>Data Platform</h2>
+<h3>PgBouncer 1.26.0：先定位受影响实例，再安排安全升级</h3>
+<p>【事实】[A] PgBouncer 于 2026-09-23 发布 1.26.0，修复三个 DoS 漏洞：<code>CVE-2026-19888</code> 是未认证客户端提交缺少 nonce 的 SCRAM client-final-message 导致崩溃；<code>CVE-2026-6668</code> 是未认证客户端可触发的 packet buffer 整数溢出与无限循环；<code>CVE-2026-6669</code> 是恶意 PostgreSQL 服务端通过无界 SCRAM 迭代次数造成登录时过量工作。公告同时列出 <code>search_path</code> 和 <code>default_transaction_read_only</code> 默认追踪，以及旧在线重启 <code>-R</code> 移除。</p>
+<p>【分析】前两项与入口可达性直接相关，第三项需单独评估上游服务端信任边界。公告证明漏洞与修复范围，但不证明任何特定部署已暴露；升级回归应包含会话参数和启动方式。</p>
+<p>【建议】对每个实例记录版本、入口 ACL、认证模式和上游地址；将受影响部署排进 1.26.0 变更窗口，验证连接建立、参数追踪、故障切换与回滚。</p>
 <h3>PostgreSQL 19 Beta 4：多个计划特性被撤回</h3>
 <p>【事实】[A] PostgreSQL 19 Beta 4 于 2026-09-24 发布。项目撤回 SQL/PGQ、在线启停 data checksum、<code>FOR PORTION OF</code> temporal update/delete、分区 merge/split 等特性，并修复逻辑复制、autovacuum scoring、<code>COPY FROM</code> SIMD 与并发 detach partition crash；从早期 beta 升级仍需按 major upgrade 路径处理。</p>
 <p>【分析】“被 beta 文档提及”不能当成 GA 合同。若 PoC 已使用被撤回语法，应该立刻从路线图移除；逻辑复制用户则值得在 RC 前做针对性回放。</p>
 <p>【建议】只在隔离环境测试 Beta 4；把 schema/SQL 静态扫描和 logical replication replay 结果带到 RC 评审，不建立生产依赖。</p>
 <p>其余 Kafka、Flink、Redis 与 MySQL 候选在本轮窗口内未发现同时满足新颖性、行动性和证据门槛的更新；不为凑数扩写。</p>
 <h2>AI Engineering</h2>
+<h3>Spring AI 2.1.0-M1：消息 parts 与持久化边界</h3>
+<p>【事实】[A] Spring 于 2026-09-25 发布 Spring AI <code>2.1.0-M1</code>，基于 Spring Boot <code>4.2.0-M2</code>，新增有序 <code>MessagePart</code>、<code>OpenAiResponsesChatModel</code> 与预计算向量 <code>upsert</code>。当前仅新 Responses 模型原生处理 parts；持久化 ChatMemory repository 暂不保存 parts，只有内存实现可跨轮保留 reasoning；其他模型适配与持久化支持计划在 RC1 继续完善。该版本仍是 milestone，API 可能变化。</p>
+<p>【分析】这为 Java agent 的工具调用顺序与 opaque reasoning 传递提供了更清晰的表示，但持久化缺口限制了长时任务恢复，不能把模型适配器等同于完整 Harness。</p>
+<p>【建议】在隔离样本中验证工具调用往返、进程重启后的上下文恢复和向量重放；生产链路保持已验证版本，等待 RC/GA 与持久化合同。</p>
 <h3>Spring AI TypeSafe 0.1.0：窄域结构化判断候选</h3>
-<p>【事实】[A] Spring 官方博客在 2026-09-21 发布 Spring AI Community 的 TypeSafe 集成 <code>0.1.0</code>，提供 Noul、Choice、Score 三类结构化判断，并实现 Spring AI 的 <code>CallAdvisor</code>、<code>DocumentPostProcessor</code>、<code>ToolIndex</code> 与 <code>Evaluator</code> SPI。该服务需要独立 API key，且不生成文本。</p>
+<p>【事实】[A] Spring 官方博客在 2026-09-21 介绍 Spring AI Community 的 TypeSafe 集成 <code>0.1.0</code>，提供 Noul、Choice、Score 三类结构化判断，并实现 Spring AI 的 <code>CallAdvisor</code>、<code>DocumentPostProcessor</code>、<code>ToolIndex</code> 与 <code>Evaluator</code> SPI。该服务需要独立 API key，且不生成文本。Spring 2026-09-25 的周内更新又列出后续 <code>0.2.0</code>；本节分析限于已深读的 <code>0.1.0</code> 能力。</p>
 <p>【分析】文章给出的延迟与成本数字来自供应商自测，缺少独立复现，不能直接用于容量或采购结论。它更适合做路由、阈值 gate 和 inconclusive 分支实验，而不是替代开放式 reasoning。</p>
 <p>【建议】仅用自有标注集做小规模 A/B：同时记录误拒、误放、inconclusive 比例、P95 延迟和单次成本；未达到稳定性门槛前不接入关键决策链。</p>
 <h3>Agent Harness 交叉影响</h3>
 <p>【事实】[A] GitHub Copilot app 的 OTel 配置由企业 managed settings 统一下发，可观察模型请求与工具调用；内容采集默认关闭，需要显式审查后才启用。</p>
 <p>【分析】对评测平台，trace 是重放、失败分类和成本归因的前提；但遥测本身不会自动形成质量评价，也不证明 agent 行为正确。</p>
 <p>【建议】将 trace schema 与现有 OpenTelemetry collector 对齐，先验证字段最小化与 retention，再设计 eval 关联键。</p>
+<p>【分析】Spring AI 2.1.0-M1 的 parts 和 Responses 适配提供对 agent 工具往返的底层支持，但持久化 ChatMemory 缺口仍需 Harness 层测试与约束。</p>
 <h2>Agent Harness / Runtime / Orchestration</h2>
 <h3>Copilot 本地 sandbox + OpenTelemetry</h3>
 <p>【事实】[A] 本地 sandbox 可分别配置额外读写、只读、拒绝目录、外网/本地网络和 Git/GitHub CLI 凭据；策略无法由操作系统执行时会 fail closed。该能力默认关闭、处于 public preview，且不覆盖 cloud sandbox、remote host 或 Copilot CLI 的独立设置。</p>
 <p>【分析】这是完整 Harness 的两个必要层，而非完整治理方案：仍缺少对跨产品策略一致性、审批、持久状态、重试/幂等与 trace 保留策略的统一证明。</p>
 <p>【建议】雷达进入 trial，不进入 adopt。测试必须包括 deny-path、重启后的设置生效范围、CLI/app 配置差异和日志脱敏。</p>
+<p>【事实】[A] Spring AI 2.1.0-M1 同周公布 <code>MessagePart</code> 和 Responses API 适配；官方明确仅该新模型原生处理 parts，持久化 ChatMemory 尚不保存 parts，未来 Agent 项目仍属规划。</p>
+<p>【分析】这是 Java agent 的上下文与工具调用基础设施变化，不是可直接替代执行循环、权限、恢复与治理的完整 Harness。将状态恢复与跨模型行为列为后续观察条件。</p>
 <h3>Copilot runtime 的 Rust 迁移：有价值的厂商工程案例</h3>
 <p>【事实】[C] GitHub 工程文章称其 Copilot agent runtime 已从 TypeScript/Node 迁移为约 83.2 万行生产 Rust，并通过 135 次渐进发布完成；文章同时披露数十个已知迁移回归，并说明 in-process 入口仍为 opt-in。这是供应商自述的单一生产案例。</p>
 <p>【分析】可借鉴的是“保持行为、增量切片、双 transport、预发布观察”的迁移方法，而不是“Agent 可以无监督重写大型系统”的泛化结论。文章没有提供可独立审计的完整代码与原始 benchmark 数据。</p>
@@ -128,10 +141,13 @@ table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin
 <tr><td>ARCH-2026-W39-04</td><td>P2</td><td>试验 Copilot sandbox 与 OTel</td><td>工程效率负责人</td><td>2026-10-09</td><td>deny-path、凭据隔离、脱敏 trace 和配置作用域均有证据</td><td>open</td></tr>
 <tr><td>ARCH-2026-W39-05</td><td>P2</td><td>回放 PostgreSQL 19 RC</td><td>数据库负责人</td><td>RC 发布后一周内</td><td>被撤回特性无依赖，复制与升级回放有可复现记录</td><td>open</td></tr>
 <tr><td>ARCH-2026-W39-06</td><td>P2</td><td>评估 Maven 4 RC 插件矩阵</td><td>构建平台负责人</td><td>2026-10-16</td><td>多模块样本在 3.9.x 与 4.0.0-rc-7 的差异清单完整</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-07</td><td>P1</td><td>盘点并升级受影响 PgBouncer 实例</td><td>数据库平台负责人</td><td>2026-09-30</td><td>版本和网络暴露清单、1.26.0 回归记录与回滚步骤齐全</td><td>open</td></tr>
+<tr><td>ARCH-2026-W39-08</td><td>P2</td><td>验证 Spring AI milestone 的 parts 持久化边界</td><td>AI 平台负责人</td><td>2026-10-16</td><td>工具往返与进程重启测试显示上下文保留范围，记录不适用的持久化实现</td><td>open</td></tr>
 </tbody></table>
 <h2>观察池与拒绝项</h2>
 <ul>
 <li>观察：Spring Cloud <code>2026.0.0-M1</code> 基于 Spring Boot <code>4.2.0-M2</code>，仅保留为 2026 feature train 预研信号，不用于生产建议。</li>
+<li>观察：Spring AI <code>2.1.0-M1</code> 的持久化 parts、跨模型适配与计划中的 Agent 项目尚待 RC/GA 核验；不据 milestone 升级生产雷达。</li>
 <li>观察：Elasticsearch <code>9.5.4</code> 与 Docker Desktop <code>4.92.0</code> 在窗口内有发布，但本轮未发现足以改变现有架构动作的材料。</li>
 <li>拒绝：OpenAI Agents API（2026-09-10）与 Google ADK for Kotlin 1.0（2026-09-09）超出默认 14 天发现窗口；保留到后续专题，不在本周正文展开。</li>
 <li>拒绝：Copilot Memory / agentic autofix 仍处 public preview，缺少可审计的 memory 生命周期、删除与跨功能传播证据，不进入雷达。</li>
@@ -143,16 +159,19 @@ table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;margin
 <li><a href="https://www.oracle.com/news/announcement/oracle-releases-java-27-and-strengthens-post-quantum-cryptography-support-2026-09-15/">Oracle Releases Java 27</a> — 发布者：Oracle；访问日期：2026-09-26；事件日期：2026-09-15；适用版本：Oracle JDK 27；[A]</li>
 <li><a href="https://spring.io/blog/2026/09/21/releasing-spring-for-modern-challenges/">Releasing Spring for Modern Challenges</a> — 发布者：Spring；访问日期：2026-09-26；事件日期：2026-09-21；适用版本：Spring portfolio release process from 2026-10-22；[A]</li>
 <li><a href="https://www.postgresql.org/about/news/postgresql-19-beta-4-released-3386/">PostgreSQL 19 Beta 4 Released</a> — 发布者：PostgreSQL Global Development Group；访问日期：2026-09-26；事件日期：2026-09-24；适用版本：PostgreSQL 19 Beta 4；[A]</li>
+<li><a href="https://www.pgbouncer.org/2026/09/pgbouncer-1-26-0">PgBouncer 1.26.0</a> — 发布者：PgBouncer Authors；访问日期：2026-09-27；事件日期：2026-09-23；适用版本：PgBouncer 1.26.0 与更早受影响版本；[A]</li>
+<li><a href="https://github.com/pgbouncer/pgbouncer/blob/master/NEWS.md">PgBouncer changelog</a> — 发布者：PgBouncer Maintainers；访问日期：2026-09-27；事件日期：2026-09-23；适用版本：PgBouncer 1.26.0；[A]</li>
 <li><a href="https://github.blog/changelog/2026-09-23-local-sandboxing-in-the-github-copilot-app/">Local sandboxing in the GitHub Copilot app</a> — 发布者：GitHub；访问日期：2026-09-26；事件日期：2026-09-23；适用版本：GitHub Copilot app public preview；[A]</li>
 <li><a href="https://github.blog/changelog/2026-09-22-opentelemetry-in-the-github-copilot-app/">OpenTelemetry in the GitHub Copilot app</a> — 发布者：GitHub；访问日期：2026-09-26；事件日期：2026-09-22；适用版本：GitHub Copilot app enterprise managed settings；[A]</li>
 <li><a href="https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/">Node 20 is no longer available in GitHub Actions</a> — 发布者：GitHub；访问日期：2026-09-26；事件日期：2026-09-23；适用版本：GitHub Actions hosted and self-hosted runner guidance；[A]</li>
 <li><a href="https://maven.apache.org/docs/history.html">Maven Releases History</a> — 发布者：Apache Maven Project；访问日期：2026-09-26；事件日期：2026-09-24；适用版本：Maven 4.0.0-rc-7；[A]</li>
 <li><a href="https://spring.io/blog/2026/09/21/spring-ai-typesafe-structured-judgment/">Spring AI and TypeSafe Jev</a> — 发布者：Spring；访问日期：2026-09-26；事件日期：2026-09-21；适用版本：spring-ai-typesafe 0.1.0；[A]</li>
+<li><a href="https://spring.io/blog/2026/09/25/spring-ai-2-1-0-M1-available-now/">Spring AI 2.1.0-M1 Available Now</a> — 发布者：Spring；访问日期：2026-09-27；事件日期：2026-09-25；适用版本：Spring AI 2.1.0-M1、Spring Boot 4.2.0-M2；[A]</li>
 <li><a href="https://github.blog/ai-and-ml/generative-ai/migrating-the-github-copilot-runtime-to-rust-using-copilot/">Migrating the GitHub Copilot runtime to Rust</a> — 发布者：GitHub Engineering；访问日期：2026-09-26；事件日期：2026-09-16；适用版本：Copilot agent runtime migration completed 2026-08；[C]</li>
 <li><a href="https://www.elastic.co/docs/release-notes/elasticsearch">Elasticsearch release notes</a> — 发布者：Elastic；访问日期：2026-09-26；事件日期：2026-09-15；适用版本：Elasticsearch 9.5.4；[A]</li>
 <li><a href="https://docs.docker.com/desktop/release-notes/">Docker Desktop release notes</a> — 发布者：Docker；访问日期：2026-09-26；事件日期：2026-09-21；适用版本：Docker Desktop 4.92.0；[A]</li>
 </ul>
-<blockquote>预算使用：发现 42 条（来自官方 release/changelog 索引），筛选 18 条，深读 10 条，正文采用 8 个主题；估算有效输入约 38k tokens、报告输出约 6.7k tokens；未触发 120k 软上限，未执行降级策略。</blockquote></main>
+<blockquote>预算使用：原批次发现 42 条、筛选 18 条、深读 10 条；本次定向补充 PgBouncer 与 Spring AI 2.1.0-M1 两条官方候选，未触发 120k 软上限，未执行降级策略。Token 数仅作估算，不作为计费记录。</blockquote></main>
 <footer>此页面由 Markdown 自动生成；内容与证据的 Source of Truth 位于 Git 仓库。</footer>
 </body>
 </html>
